@@ -1,0 +1,21 @@
+{
+  "name": "@automata/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env PORT=3999 tsx watch src/index.ts",
+    "start": "cross-env NODE_ENV=production tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@automata/nfa-lang": "*",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "cross-env": "^7.0.3",
+    "tsx": "^4.19.2"
+  }
+}

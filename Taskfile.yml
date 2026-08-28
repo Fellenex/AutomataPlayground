@@ -1,0 +1,52 @@
+version: "3"
+
+# Tasks invoke `node` directly (no shell-specific commands), so they run the same
+# from git bash, WSL, PowerShell, or cmd.
+
+vars:
+  PORT: "3999"
+  PIDFILE: ".server.pid"
+  SERVER_DIR: "apps/server"
+
+env:
+  PORT: "{{.PORT}}"
+  PIDFILE: "{{.PIDFILE}}"
+  SERVER_DIR: "{{.SERVER_DIR}}"
+
+tasks:
+  setup:
+    desc: One-command onboarding — verify Node, then install workspace deps
+    deps: [node:check]
+    cmds:
+      - npm install
+
+  node:check:
+    desc: Verify the running Node version matches .nvmrc (major version)
+    cmds:
+      - node scripts/check-node.mjs
+
+  up:
+    desc: Run the full dev stack — Vite (:5173) + API with watch (:3999)
+    cmds:
+      - npm run dev
+
+  server:up:
+    desc: Start the tsx API server (background); cleans orphans + checks the port first
+    deps: [server:down] # safeguard: always clean before starting
+    cmds:
+      - node scripts/server.mjs up
+
+  server:down:
+    desc: Stop the server, sweep orphaned tsx processes for this repo, and free the port
+    cmds:
+      - node scripts/server.mjs down
+
+  server:status:
+    desc: Show whether the server port is bound
+    cmds:
+      - node scripts/server.mjs status
+
+  server:restart:
+    desc: Restart the server (server:up already cleans first)
+    cmds:
+      - task: server:up
