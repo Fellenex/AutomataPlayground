@@ -50,6 +50,19 @@ export const LIMITS = {
 export { tokenize } from "./lexer";
 export { parseProgram } from "./parser";
 export { validate } from "./validate";
+export { parseExpr, evaluate, EvalError } from "./expr";
+export type {
+  Expr,
+  NumLit,
+  VarRef,
+  UnaryExpr,
+  BinaryExpr,
+  CallExpr,
+  UnaryOp,
+  BinaryOp,
+  Env,
+  ParseExprResult,
+} from "./expr";
 export type { Token, TokenKind } from "./tokens";
 export type * from "./ast";
 export type { Diagnostic, Severity } from "./diagnostics";
