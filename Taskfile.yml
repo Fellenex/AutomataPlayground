@@ -25,6 +25,11 @@ tasks:
     cmds:
       - node scripts/check-node.mjs
 
+  test:
+    desc: Run the Vitest suite once
+    cmds:
+      - npm test
+
   up:
     desc: Run the full dev stack — Vite (:5173) + API with watch (:3999)
     cmds:

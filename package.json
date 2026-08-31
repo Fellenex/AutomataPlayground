@@ -16,10 +16,13 @@
     "dev:web": "npm run dev -w @automata/web",
     "dev:server": "npm run dev -w @automata/server",
     "build": "npm run build -w @automata/web",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
   }
 }
