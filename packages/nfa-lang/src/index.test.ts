@@ -1,11 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { validateProgram, LIMITS } from "./index";
 
-// Scaffold smoke tests — prove the Vitest harness runs and the package's public
-// surface is importable. Behavioral tests for the real parser land with the
-// grammar issues (#5–#8); the "not implemented" assertion below is a placeholder
-// to replace once #5 makes validateProgram actually parse.
-describe("nfa-lang (scaffold smoke test)", () => {
+// End-to-end tests of the public `validateProgram` orchestration. The lexer,
+// parser, and validator have their own focused suites (*.test.ts); these cover
+// how the pieces compose behind the one exported entry point.
+describe("nfa-lang — validateProgram", () => {
   it("returns a stable ValidationResult shape", () => {
     const result = validateProgram("graph G(n): symbols { a }");
     expect(typeof result.ok).toBe("boolean");
@@ -13,10 +12,35 @@ describe("nfa-lang (scaffold smoke test)", () => {
     expect(Array.isArray(result.warnings)).toBe(true);
   });
 
-  it("reports not-implemented until the parser lands (remove in #5)", () => {
-    const result = validateProgram("");
+  it("surfaces validation errors for an invalid program", () => {
+    const result = validateProgram(
+      "graph G:\n  symbols { a }\n  nodes 1..2\n  (1, b, 2)",
+    );
     expect(result.ok).toBe(false);
-    expect(result.errors.join(" ")).toMatch(/not implemented/i);
+    expect(result.errors.join(" ")).toMatch(/Unknown symbol 'b'/);
+  });
+
+  it("surfaces warnings alongside a clean/parseable program", () => {
+    const result = validateProgram(
+      "graph G(n):\n  symbols { a }\n  let n = 5\n  nodes 1..n\n  (1, a, n)",
+    );
+    expect(result.warnings.join(" ")).toMatch(/overrides parameter 'n'/);
+  });
+
+  it("prefixes diagnostics with a 1-based line:col location", () => {
+    const result = validateProgram(
+      "graph G:\n  symbols { a }\n  nodes 1..2\n  (1, b, 2)",
+    );
+    expect(result.errors[0]).toMatch(/^\d+:\d+: /);
+  });
+
+  it("reports expansion as not implemented for a fully valid program (until #7)", () => {
+    const result = validateProgram(
+      "graph G(n):\n  symbols { a }\n  nodes 1..n\n  (1, a, 1)\n\nG(3)",
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(" ")).toMatch(/expansion not implemented/i);
+    expect(result.graph).toBeUndefined();
   });
 
   it("exposes positive expansion LIMITS", () => {
