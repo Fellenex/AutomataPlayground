@@ -68,6 +68,28 @@ Functions (Hono) + Cloudflare KV/D1/R2 later for server-side re-validation and
 hosted saves — the shared-package design makes that a bolt-on, not a rewrite.
 Until then `apps/server` is a dev-only convenience.
 
+## Writing Grammars
+
+See [docs/GRAMMAR.md](docs/GRAMMAR.md) for the full language spec. The arithmetic
+expressions used in range bounds (`n+1..m`), instantiation args, `let` right-hand
+sides, and comprehension guards are parsed by a precedence-climbing (Pratt)
+sub-parser.
+
+### Precedence
+
+From lowest to highest binding power:
+
+```
+or  <  and  <  not  <  comparison / in  <  + -  <  * %  <  unary -  <  primary
+```
+
+where `comparison` is `< <= > >= == !=`, and `primary` is a number, a variable,
+`class(...)`, or a parenthesized expression.
+
+All binary operators are **left-associative** — `1 - 2 - 3` parses as `(1 - 2) - 3`,
+and `a and b and c` as `(a and b) and c`. Use parentheses to override precedence
+or grouping (`(1 + 2) * 3`).
+
 ## Status
 
 Scaffold only. `nfa-lang` is a shell — see [docs/GRAMMAR.md](docs/GRAMMAR.md)
