@@ -34,13 +34,23 @@ describe("nfa-lang — validateProgram", () => {
     expect(result.errors[0]).toMatch(/^\d+:\d+: /);
   });
 
-  it("reports expansion as not implemented for a fully valid program", () => {
+  it("expands a fully valid program into a concrete graph", () => {
     const result = validateProgram(
       "graph G(n):\n  symbols { a }\n  nodes 1..n\n  (1, a, 1)\n\nG(3)",
     );
+    expect(result.ok).toBe(true);
+    expect(result.errors).toEqual([]);
+    expect(result.graph?.nodes.map((n) => n.id)).toEqual([1, 2, 3]);
+    expect(result.graph?.edges).toEqual([{ src: 1, label: "a", tgt: 1 }]);
+  });
+
+  it("surfaces an expansion error (edge endpoint not declared)", () => {
+    const result = validateProgram(
+      "graph G(n):\n  symbols { a }\n  nodes 1..n\n  (1, a, 9)\n\nG(3)",
+    );
     expect(result.ok).toBe(false);
-    expect(result.errors.join(" ")).toMatch(/expansion not implemented/i);
     expect(result.graph).toBeUndefined();
+    expect(result.errors.join(" ")).toMatch(/'9' is not a declared node/);
   });
 
   it("exposes positive expansion LIMITS", () => {

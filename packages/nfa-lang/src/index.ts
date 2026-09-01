@@ -1,14 +1,14 @@
 // @automata/nfa-lang — shared parser + expander for the NFA DSL.
 //
-// The front-end is in place: lexer -> recursive-descent parser (AST, with
-// arithmetic expressions parsed by the Pratt sub-parser) -> strict validation.
-// Product expansion and LIMITS enforcement land in follow-ups, so a
-// structurally valid program reports "expansion not implemented yet" rather
-// than returning a concrete graph.
+// Pipeline: lexer -> recursive-descent parser (AST, with arithmetic expressions
+// parsed by the Pratt sub-parser) -> strict validation -> expansion into a
+// concrete `ExpandedGraph` (cartesian product, comprehensions, instantiation).
+// LIMITS enforcement lands in a follow-up.
 
 import { tokenize } from "./lexer";
 import { parseProgram } from "./parser";
 import { validate } from "./validate";
+import { expand } from "./expand";
 import { formatDiagnostic } from "./diagnostics";
 
 /** A node after expansion: a numeric id plus its merged classification set. */
@@ -49,7 +49,9 @@ export const LIMITS = {
 export { tokenize } from "./lexer";
 export { parseProgram } from "./parser";
 export { validate } from "./validate";
-export { parseExpr, evaluate, EvalError } from "./expr";
+export { expand } from "./expand";
+export type { ExpandResult } from "./expand";
+export { parseExpr, evaluate, evaluateGuard, EvalError } from "./expr";
 export type {
   Expr,
   NumLit,
@@ -60,6 +62,7 @@ export type {
   UnaryOp,
   BinaryOp,
   Env,
+  ClassEnv,
   ParseExprResult,
 } from "./expr";
 export type { Token, TokenKind } from "./tokens";
@@ -67,12 +70,12 @@ export type * from "./ast";
 export type { Diagnostic, Severity } from "./diagnostics";
 
 /**
- * Parse and validate a DSL program's structure.
+ * Parse, validate, and expand a DSL program into a concrete graph.
  *
- * Runs lexing, recursive-descent parsing, and strict validation, surfacing all
- * errors and warnings. Expansion into a concrete `graph` is not implemented yet,
- * so even a fully valid program currently reports `ok: false` with a single
- * "expansion not implemented" error.
+ * Runs lexing, recursive-descent parsing, strict validation, then expansion,
+ * surfacing every error and warning. On success `ok` is true and `graph` holds
+ * the expanded nodes and edges; any error at a stage short-circuits the rest and
+ * leaves `graph` undefined.
  */
 export function validateProgram(source: string): ValidationResult {
   const warnings: string[] = [];
@@ -93,10 +96,15 @@ export function validateProgram(source: string): ValidationResult {
     return { ok: false, errors: diags.errors.map(formatDiagnostic), warnings };
   }
 
-  // Front-end is clean; the expander is not wired up yet.
-  return {
-    ok: false,
-    errors: ["nfa-lang: expansion not implemented yet"],
-    warnings,
-  };
+  const { graph, diags: expansion } = expand(parsed.program);
+  warnings.push(...expansion.warnings.map(formatDiagnostic));
+  if (expansion.hasErrors) {
+    return {
+      ok: false,
+      errors: expansion.errors.map(formatDiagnostic),
+      warnings,
+    };
+  }
+
+  return { ok: true, errors: [], warnings, graph };
 }
