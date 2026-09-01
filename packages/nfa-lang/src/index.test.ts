@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateProgram, LIMITS } from "./index";
+import { validateProgram, analyze, LIMITS } from "./index";
 
 // End-to-end tests of the public `validateProgram` orchestration. The lexer,
 // parser, and validator have their own focused suites (*.test.ts); these cover
@@ -51,6 +51,40 @@ describe("nfa-lang — validateProgram", () => {
     expect(result.ok).toBe(false);
     expect(result.graph).toBeUndefined();
     expect(result.errors.join(" ")).toMatch(/'9' is not a declared node/);
+  });
+
+  it("analyze() returns positioned diagnostics with a severity", () => {
+    const result = analyze(
+      "graph G:\n  symbols { a }\n  nodes 1..2\n  (1, b, 2)",
+    );
+    expect(result.ok).toBe(false);
+    expect(result.graph).toBeUndefined();
+    const err = result.diagnostics.find((d) => /Unknown symbol 'b'/.test(d.message));
+    expect(err).toBeDefined();
+    expect(err?.severity).toBe("error");
+    expect(err?.line).toBe(4);
+    expect(typeof err?.col).toBe("number");
+  });
+
+  it("analyze() sorts diagnostics by source position", () => {
+    const { diagnostics } = analyze(
+      "graph G:\n  symbols { a }\n  nodes 1..2\n  (1, b, 2)\n  (2, c, 1)",
+    );
+    for (let i = 1; i < diagnostics.length; i++) {
+      const prev = diagnostics[i - 1];
+      const cur = diagnostics[i];
+      expect(prev.line < cur.line || (prev.line === cur.line && prev.col <= cur.col)).toBe(true);
+    }
+  });
+
+  it("analyze() yields a graph and keeps warnings on success", () => {
+    const result = analyze(
+      "graph G(n):\n  symbols { a }\n  let n = 5\n  nodes 1..n\n  (1, a, n)\n\nG(3)",
+    );
+    expect(result.ok).toBe(true);
+    expect(result.graph?.nodes.length).toBeGreaterThan(0);
+    expect(result.diagnostics.every((d) => d.severity === "warning")).toBe(true);
+    expect(result.diagnostics.some((d) => /overrides parameter 'n'/.test(d.message))).toBe(true);
   });
 
   it("exposes positive expansion LIMITS", () => {
