@@ -121,8 +121,9 @@ override precedence or grouping (`(1 + 2) * 3`).
 4. **Strict declared-before-use**: every edge endpoint must fall in some `nodes`
    declaration.
 5. Two alphabets, validated, never collide.
-6. Enforce expansion **limits** (source length, node/edge counts) — see
-   `LIMITS` in `src/index.ts`.
+6. Enforce expansion **limits** (source length, argument magnitude, node/edge
+   counts) — see `LIMITS` in `src/limits.ts`. Over-limit input aborts with a
+   clear error instead of hanging.
 
 ## Rendering note (not the model)
 
