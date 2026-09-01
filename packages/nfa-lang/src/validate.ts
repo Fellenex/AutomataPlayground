@@ -1,10 +1,10 @@
 // Strict static validation for nfa-lang (see docs/GRAMMAR.md §Static semantics).
 //
 // Runs on the AST from parser.ts and reports errors + warnings. Scope covers
-// everything checkable without evaluating arithmetic (that is #6) or expanding
-// the product (that is #7): alphabet membership, the two node modes,
-// declared-before-use ordering, all-free-variables-bound, the let-overrides-
-// param warning, and structural dedup/hygiene warnings.
+// everything checkable without evaluating arithmetic or expanding the product:
+// alphabet membership, the two node modes, declared-before-use ordering,
+// all-free-variables-bound, the let-overrides-param warning, and structural
+// dedup/hygiene warnings.
 
 import type {
   EdgeStmt,

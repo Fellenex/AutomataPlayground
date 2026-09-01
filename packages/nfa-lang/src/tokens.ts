@@ -3,8 +3,8 @@
 /**
  * All token kinds produced by {@link tokenize}. Structural punctuation and the
  * arithmetic/comparison operators are separate kinds so the Pratt sub-parser
- * (#6) can consume the operator tokens that the structural parser (#5) only
- * captures verbatim inside raw expression spans.
+ * can consume the operator tokens that the structural parser only captures
+ * verbatim inside raw expression spans.
  */
 export type TokenKind =
   | "ident"
