@@ -3,13 +3,14 @@
 // Pipeline: lexer -> recursive-descent parser (AST, with arithmetic expressions
 // parsed by the Pratt sub-parser) -> strict validation -> expansion into a
 // concrete `ExpandedGraph` (cartesian product, comprehensions, instantiation).
-// LIMITS enforcement lands in a follow-up.
+// Expansion is bounded by the shared `LIMITS` ceilings (see `./limits`).
 
 import { tokenize } from "./lexer";
 import { parseProgram } from "./parser";
 import { validate } from "./validate";
 import { expand } from "./expand";
 import { formatDiagnostic } from "./diagnostics";
+import { LIMITS } from "./limits";
 
 /** A node after expansion: a numeric id plus its merged classification set. */
 export interface ExpandedNode {
@@ -37,13 +38,6 @@ export interface ValidationResult {
   graph?: ExpandedGraph;
 }
 
-/** Hard ceilings enforced during expansion to prevent blowup (e.g. `G(1000000)`). */
-export const LIMITS = {
-  maxSourceChars: 20_000,
-  maxNodes: 5_000,
-  maxEdges: 50_000,
-} as const;
-
 // Re-export the front-end building blocks so consumers (and tests) can use them
 // directly, and so the follow-up issues can compose against a stable surface.
 export { tokenize } from "./lexer";
@@ -51,6 +45,8 @@ export { parseProgram } from "./parser";
 export { validate } from "./validate";
 export { expand } from "./expand";
 export type { ExpandResult } from "./expand";
+export { LIMITS } from "./limits";
+export type { Limits } from "./limits";
 export { parseExpr, evaluate, evaluateGuard, EvalError } from "./expr";
 export type {
   Expr,
@@ -80,6 +76,19 @@ export type { Diagnostic, Severity } from "./diagnostics";
 export function validateProgram(source: string): ValidationResult {
   const warnings: string[] = [];
 
+  // Reject oversized source before lexing, so a huge paste fails immediately
+  // rather than after building tokens/AST for it.
+  if (source.length > LIMITS.maxSourceChars) {
+    return {
+      ok: false,
+      errors: [
+        `Source is too long: ${source.length} characters ` +
+          `exceeds the limit of ${LIMITS.maxSourceChars}`,
+      ],
+      warnings,
+    };
+  }
+
   const lex = tokenize(source);
   if (lex.errors.length > 0) {
     return { ok: false, errors: lex.errors.map(formatDiagnostic), warnings };
@@ -96,7 +105,7 @@ export function validateProgram(source: string): ValidationResult {
     return { ok: false, errors: diags.errors.map(formatDiagnostic), warnings };
   }
 
-  const { graph, diags: expansion } = expand(parsed.program);
+  const { graph, diags: expansion } = expand(parsed.program, LIMITS);
   warnings.push(...expansion.warnings.map(formatDiagnostic));
   if (expansion.hasErrors) {
     return {
