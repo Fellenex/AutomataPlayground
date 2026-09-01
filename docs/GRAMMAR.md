@@ -68,6 +68,14 @@ UpperTriangle(5, 8)
 - Every free variable in a body must be bound by a param, `let`, or `for`
   binding, else error (catches an unbound `m`).
 
+## Program output
+
+A definition is only a template. The expanded graph is the **union of every
+top-level instantiation** — a bare `G` (no parentheses) is a zero-argument
+instantiation. Instantiations share one node-id space, so classifications merge
+and identical edges dedup across them. A program with definitions but no
+instantiation expands to the empty graph (with a warning).
+
 ## Comprehensions
 
 ```
