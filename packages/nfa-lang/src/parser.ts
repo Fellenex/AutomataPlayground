@@ -1,9 +1,9 @@
 // Recursive-descent parser for nfa-lang's structure (see docs/GRAMMAR.md).
 //
 // It builds the AST in ast.ts. Every expression position is captured as a
-// RawExpr — its token slice plus the parsed tree from the Pratt sub-parser (#6,
-// see expr.ts). Graph bodies are grouped by indentation — a statement belongs
-// to a graph iff it starts to the right of the `graph` keyword.
+// RawExpr — its token slice plus the parsed tree from the Pratt sub-parser (see
+// expr.ts). Graph bodies are grouped by indentation — a statement belongs to a
+// graph iff it starts to the right of the `graph` keyword.
 //
 // Parsing is resilient: a malformed statement records one diagnostic, then the
 // parser resynchronizes to the next line and keeps going, so a single typo does
@@ -408,7 +408,7 @@ class Parser {
   /**
    * Capture the token slice of one arithmetic expression, stopping (but not
    * consuming) at a terminator at bracket depth 0, or at end of line/input, then
-   * hand the slice to the Pratt sub-parser (#6) to build its {@link RawExpr.expr}
+   * hand the slice to the Pratt sub-parser to build its {@link RawExpr.expr}
    * tree. A malformed expression records one diagnostic and yields `expr: null`;
    * structural parsing continues so later statements are still reported.
    */

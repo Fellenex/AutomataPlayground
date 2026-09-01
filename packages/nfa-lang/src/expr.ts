@@ -14,12 +14,12 @@
 //   unary       prefix     -
 //   primary                number | var | class(args) | ( expr )
 //
-// Arithmetic (`+ - * %`, unary `-`, parens) is the core the issue asks for;
-// comparisons, boolean connectives, and `in class(...)` are here so that
-// comprehension *guards* parse into the same tree. Evaluation (see {@link
-// evaluate}) covers arithmetic, comparison, and boolean logic under a numeric
-// binding environment; `in`/`class(...)` membership is deferred to the expander
-// (#7), which owns the classification environment.
+// Arithmetic (`+ - * %`, unary `-`, parens) is the core; comparisons, boolean
+// connectives, and `in class(...)` are here so that comprehension *guards* parse
+// into the same tree. Evaluation (see {@link evaluate}) covers arithmetic,
+// comparison, and boolean logic under a numeric binding environment;
+// `in`/`class(...)` membership is deferred to the expander, which owns the
+// classification environment.
 
 import type { Pos } from "./ast";
 import type { Token } from "./tokens";
@@ -306,9 +306,9 @@ export class EvalError extends Error {
 /**
  * Evaluate an expression under a numeric binding environment. Arithmetic
  * (`+ - * %`, unary `-`) yields a number; comparisons and boolean connectives
- * yield a boolean. `in`/`class(...)` membership is deferred to the expander
- * (#7), which supplies the classification environment; evaluating it here
- * throws {@link EvalError}.
+ * yield a boolean. `in`/`class(...)` membership is deferred to the expander,
+ * which supplies the classification environment; evaluating it here throws
+ * {@link EvalError}.
  */
 export function evaluate(expr: Expr, env: Env = {}): number | boolean {
   switch (expr.kind) {
@@ -335,7 +335,7 @@ export function evaluate(expr: Expr, env: Env = {}): number | boolean {
 
     case "call":
       throw new EvalError(
-        `'${expr.callee}(...)' requires the classification environment (#7)`,
+        `'${expr.callee}(...)' requires the classification environment, which the expander supplies`,
         expr.pos,
       );
   }
@@ -346,7 +346,7 @@ function evalBinary(expr: BinaryExpr, env: Env): number | boolean {
 
   if (op === "in") {
     throw new EvalError(
-      "membership ('in') requires the classification environment (#7)",
+      "membership ('in') requires the classification environment, which the expander supplies",
       expr.pos,
     );
   }

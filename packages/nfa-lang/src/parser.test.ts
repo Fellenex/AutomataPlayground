@@ -144,7 +144,7 @@ describe("parser — let and instantiation", () => {
   });
 });
 
-describe("parser — Pratt expressions at expr sites (#6)", () => {
+describe("parser — Pratt expressions at expr sites", () => {
   it("attaches a parsed tree to a range bound", () => {
     const g = parseOk("graph G(n, m):\n  nodes n+1..2*m").items[0] as GraphDef;
     const range = (g.body[0] as NodeDecl).nodes as {

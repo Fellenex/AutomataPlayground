@@ -167,7 +167,7 @@ describe("expr — evaluation under a binding environment", () => {
   });
 });
 
-describe("expr — membership deferred to the expander (#7)", () => {
+describe("expr — membership deferred to the expander", () => {
   it("parses `x in class(i)` into a tree", () => {
     expect(show(parse("u in class(i)"))).toBe("(u in class(i))");
     expect(show(parse("u in class(i) and e in class(j)"))).toBe(
@@ -177,8 +177,12 @@ describe("expr — membership deferred to the expander (#7)", () => {
 
   it("throws when asked to evaluate membership or a call", () => {
     expect(() => evalExpr("u in class(i)", { u: 1, i: 2 })).toThrow(EvalError);
-    expect(() => evalExpr("u in class(i)", { u: 1, i: 2 })).toThrow(/#7/);
-    expect(() => evaluate(parse("class(i)"), { i: 1 })).toThrow(/#7/);
+    expect(() => evalExpr("u in class(i)", { u: 1, i: 2 })).toThrow(
+      /classification environment/,
+    );
+    expect(() => evaluate(parse("class(i)"), { i: 1 })).toThrow(
+      /classification environment/,
+    );
   });
 });
 
