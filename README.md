@@ -68,6 +68,11 @@ Functions (Hono) + Cloudflare KV/D1/R2 later for server-side re-validation and
 hosted saves — the shared-package design makes that a bolt-on, not a rewrite.
 Until then `apps/server` is a dev-only convenience.
 
+## Writing Grammars
+
+See [docs/GRAMMAR.md](docs/GRAMMAR.md) for the full language spec, including
+expression operator precedence and associativity.
+
 ## Status
 
 Scaffold only. `nfa-lang` is a shell — see [docs/GRAMMAR.md](docs/GRAMMAR.md)

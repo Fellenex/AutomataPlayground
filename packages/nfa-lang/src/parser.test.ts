@@ -144,6 +144,52 @@ describe("parser — let and instantiation", () => {
   });
 });
 
+describe("parser — Pratt expressions at expr sites", () => {
+  it("attaches a parsed tree to a range bound", () => {
+    const g = parseOk("graph G(n, m):\n  nodes n+1..2*m").items[0] as GraphDef;
+    const range = (g.body[0] as NodeDecl).nodes as {
+      lo: { expr: unknown };
+      hi: { expr: unknown };
+    };
+    expect(range.lo.expr).toMatchObject({
+      kind: "binary",
+      op: "+",
+      left: { kind: "var", name: "n" },
+      right: { kind: "num", value: 1 },
+    });
+    expect(range.hi.expr).toMatchObject({ kind: "binary", op: "*" });
+  });
+
+  it("attaches a parsed tree to a let RHS and instantiation args", () => {
+    const g = parseOk("graph G(n):\n  let k = n + 1").items[0] as GraphDef;
+    expect((g.body[0] as { value: { expr: unknown } }).value.expr).toMatchObject({
+      kind: "binary",
+      op: "+",
+    });
+
+    const inst = parseOk("graph G(n):\n  nodes 1..n\n\nG(2 * 3)")
+      .items[1] as Instantiation;
+    expect(inst.args[0].expr).toMatchObject({ kind: "binary", op: "*" });
+  });
+
+  it("parses a comprehension guard into a comparison tree", () => {
+    const e = parseOk("graph G:\n  (i, a, j) for i in 1..3, j in 1..3 if j > i")
+      .items[0] as GraphDef;
+    const guard = (e.body[0] as EdgeStmt).comprehension?.guard;
+    expect(guard?.expr).toMatchObject({
+      kind: "binary",
+      op: ">",
+      left: { kind: "var", name: "j" },
+      right: { kind: "var", name: "i" },
+    });
+  });
+
+  it("surfaces a malformed arithmetic expression as a parse error", () => {
+    const { errors } = parse("graph G(n):\n  let k = n +");
+    expect(errors.some((m) => /Expected an expression/.test(m))).toBe(true);
+  });
+});
+
 describe("parser — error recovery", () => {
   it("recovers to the next line and keeps reporting", () => {
     const { program, errors } = parse(

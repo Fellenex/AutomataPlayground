@@ -1,11 +1,12 @@
 // AST produced by the recursive-descent parser (see docs/GRAMMAR.md).
 //
-// Arithmetic is NOT parsed here. Every position where the grammar allows an
-// arithmetic expression — range bounds, set members, `let` right-hand sides,
-// instantiation arguments, and comprehension guards — is captured as a
-// {@link RawExpr}: the verbatim token slice. The Pratt sub-parser (#6) turns a
-// RawExpr into a real expression tree; the expander (#7) then evaluates it.
+// Every position where the grammar allows an arithmetic expression — range
+// bounds, set members, `let` right-hand sides, instantiation arguments, and
+// comprehension guards — is captured as a {@link RawExpr}: the verbatim token
+// slice plus the parsed tree from the Pratt sub-parser. The expander later
+// evaluates that tree.
 
+import type { Expr } from "./expr";
 import type { Token } from "./tokens";
 
 /** Source location, carried on every node for diagnostics. */
@@ -16,15 +17,18 @@ export interface Pos {
 }
 
 /**
- * An un-parsed arithmetic expression: the exact tokens between two structural
- * delimiters, plus the source text they span. Free-variable analysis reads
- * {@link RawExpr.tokens}; #6 replaces this node with a parsed tree.
+ * An arithmetic expression captured by the structural parser: the exact tokens
+ * between two structural delimiters, the source text they span, and the parsed
+ * {@link Expr} tree (from the Pratt sub-parser). Free-variable analysis reads
+ * {@link RawExpr.tokens}; the expander evaluates {@link RawExpr.expr}.
  */
 export interface RawExpr {
   kind: "rawExpr";
   tokens: Token[];
-  /** Verbatim source substring, for diagnostics and (later) re-parsing. */
+  /** Verbatim source substring, for diagnostics. */
   text: string;
+  /** Parsed expression tree, or null if the tokens did not parse. */
+  expr: Expr | null;
   pos: Pos;
 }
 

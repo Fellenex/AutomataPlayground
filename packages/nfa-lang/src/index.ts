@@ -1,9 +1,8 @@
 // @automata/nfa-lang — shared parser + expander for the NFA DSL.
 //
-// This issue (#5) implements the structural front-end: lexer -> recursive-
-// descent parser (AST, with arithmetic captured verbatim for the Pratt
-// sub-parser in #6) -> strict validation. Arithmetic parsing (#6), product
-// expansion (#7), and LIMITS enforcement (#8) land in follow-ups, so a
+// The front-end is in place: lexer -> recursive-descent parser (AST, with
+// arithmetic expressions parsed by the Pratt sub-parser) -> strict validation.
+// Product expansion and LIMITS enforcement land in follow-ups, so a
 // structurally valid program reports "expansion not implemented yet" rather
 // than returning a concrete graph.
 
@@ -50,6 +49,19 @@ export const LIMITS = {
 export { tokenize } from "./lexer";
 export { parseProgram } from "./parser";
 export { validate } from "./validate";
+export { parseExpr, evaluate, EvalError } from "./expr";
+export type {
+  Expr,
+  NumLit,
+  VarRef,
+  UnaryExpr,
+  BinaryExpr,
+  CallExpr,
+  UnaryOp,
+  BinaryOp,
+  Env,
+  ParseExprResult,
+} from "./expr";
 export type { Token, TokenKind } from "./tokens";
 export type * from "./ast";
 export type { Diagnostic, Severity } from "./diagnostics";
@@ -58,9 +70,9 @@ export type { Diagnostic, Severity } from "./diagnostics";
  * Parse and validate a DSL program's structure.
  *
  * Runs lexing, recursive-descent parsing, and strict validation, surfacing all
- * errors and warnings. Expansion into a concrete `graph` is not implemented yet
- * (see #6/#7), so even a fully valid program currently reports `ok: false` with
- * a single "expansion not implemented" error.
+ * errors and warnings. Expansion into a concrete `graph` is not implemented yet,
+ * so even a fully valid program currently reports `ok: false` with a single
+ * "expansion not implemented" error.
  */
 export function validateProgram(source: string): ValidationResult {
   const warnings: string[] = [];
@@ -81,10 +93,10 @@ export function validateProgram(source: string): ValidationResult {
     return { ok: false, errors: diags.errors.map(formatDiagnostic), warnings };
   }
 
-  // Front-end is clean; the expander (#7) is not wired up yet.
+  // Front-end is clean; the expander is not wired up yet.
   return {
     ok: false,
-    errors: ["nfa-lang: expansion not implemented yet (see #7)"],
+    errors: ["nfa-lang: expansion not implemented yet"],
     warnings,
   };
 }

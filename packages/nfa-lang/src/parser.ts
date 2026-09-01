@@ -1,9 +1,9 @@
 // Recursive-descent parser for nfa-lang's structure (see docs/GRAMMAR.md).
 //
-// It builds the AST in ast.ts. Arithmetic is deferred: every expression
-// position is captured verbatim as a RawExpr (the Pratt sub-parser, #6, parses
-// those later). Graph bodies are grouped by indentation — a statement belongs
-// to a graph iff it starts to the right of the `graph` keyword.
+// It builds the AST in ast.ts. Every expression position is captured as a
+// RawExpr — its token slice plus the parsed tree from the Pratt sub-parser (see
+// expr.ts). Graph bodies are grouped by indentation — a statement belongs to a
+// graph iff it starts to the right of the `graph` keyword.
 //
 // Parsing is resilient: a malformed statement records one diagnostic, then the
 // parser resynchronizes to the next line and keeps going, so a single typo does
@@ -26,6 +26,7 @@ import type {
   RawExpr,
   SymbolsDecl,
 } from "./ast";
+import { parseExpr } from "./expr";
 import type { Token, TokenKind } from "./tokens";
 
 export interface Diagnostic {
@@ -405,9 +406,11 @@ class Parser {
   // ---- raw expression capture ---------------------------------------------
 
   /**
-   * Capture the verbatim token slice of one arithmetic expression, stopping (but
-   * not consuming) at a terminator at bracket depth 0, or at end of line/input.
-   * Deferring the parse to #6 keeps this issue's scope structural.
+   * Capture the token slice of one arithmetic expression, stopping (but not
+   * consuming) at a terminator at bracket depth 0, or at end of line/input, then
+   * hand the slice to the Pratt sub-parser to build its {@link RawExpr.expr}
+   * tree. A malformed expression records one diagnostic and yields `expr: null`;
+   * structural parsing continues so later statements are still reported.
    */
   private captureRawExpr(
     stopKinds: Set<TokenKind>,
@@ -443,6 +446,16 @@ class Parser {
     }
     const last = collected[collected.length - 1];
     const text = this.source.slice(first.offset, last.offset + last.text.length);
-    return { kind: "rawExpr", tokens: collected, text, pos: this.posOf(first) };
+
+    const { expr, errors } = parseExpr(collected);
+    for (const err of errors) this.errors.push(err);
+
+    return {
+      kind: "rawExpr",
+      tokens: collected,
+      text,
+      expr,
+      pos: this.posOf(first),
+    };
   }
 }
