@@ -81,6 +81,29 @@ Guards may read classifications via set membership (node may have several):
 if u in class(i) and e in class(j)
 ```
 
+## Expressions
+
+The arithmetic expressions used in range bounds (`n+1..m`), instantiation args,
+`let` right-hand sides, and comprehension guards are parsed by a
+precedence-climbing (Pratt) sub-parser.
+
+### Precedence
+
+From lowest to highest binding power:
+
+```
+or  <  and  <  not  <  comparison / in  <  + -  <  * %  <  unary -  <  primary
+```
+
+where `comparison` is `< <= > >= == !=`, and `primary` is a number, a variable,
+`class(...)`, or a parenthesized expression.
+
+### Associativity
+
+All binary operators are **left-associative** — `1 - 2 - 3` parses as
+`(1 - 2) - 3`, and `a and b and c` as `(a and b) and c`. Use parentheses to
+override precedence or grouping (`(1 + 2) * 3`).
+
 ## Static semantics (parser contract)
 
 1. Expand `(S, L, T)` to the product of `(src, label, tgt)` triples.
