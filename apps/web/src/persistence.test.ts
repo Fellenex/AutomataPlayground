@@ -68,16 +68,16 @@ describe("CreationStore", () => {
   });
 });
 
-describe(".nfa file names", () => {
+describe(".fsm file names", () => {
   it("sanitizes creation names into file names", () => {
-    expect(toFileName("Upper Triangle")).toBe("Upper_Triangle.nfa");
-    expect(toFileName("a/b\\c")).toBe("a_b_c.nfa");
-    expect(toFileName("  ")).toBe("untitled.nfa");
+    expect(toFileName("Upper Triangle")).toBe("Upper_Triangle.fsm");
+    expect(toFileName("a/b\\c")).toBe("a_b_c.fsm");
+    expect(toFileName("  ")).toBe("untitled.fsm");
   });
 
   it("strips the extension on import", () => {
-    expect(fromFileName("UpperTriangle.nfa")).toBe("UpperTriangle");
-    expect(fromFileName("x.NFA")).toBe("x");
+    expect(fromFileName("UpperTriangle.fsm")).toBe("UpperTriangle");
+    expect(fromFileName("x.FSM")).toBe("x");
     expect(fromFileName("notes.txt")).toBe("notes.txt");
   });
 });
@@ -86,7 +86,7 @@ describe("share links", () => {
   it("round-trips source through the URL hash", async () => {
     const source = "graph G(n):\n    symbols { a }\n    (i, a, i+1) for i in 1..n\n\nG(3) — ünïcødé ✓\n";
     const hash = await encodeShareHash(source);
-    expect(hash).toMatch(/^#nfa=[A-Za-z0-9_-]+$/);
+    expect(hash).toMatch(/^#fsm=[A-Za-z0-9_-]+$/);
     expect(await decodeShareHash(hash)).toBe(source);
   });
 
@@ -98,7 +98,7 @@ describe("share links", () => {
   it("rejects non-share and malformed hashes", async () => {
     expect(await decodeShareHash("")).toBeNull();
     expect(await decodeShareHash("#other=abc")).toBeNull();
-    expect(await decodeShareHash("#nfa=!!!")).toBeNull();
-    expect(await decodeShareHash("#nfa=AAAA")).toBeNull();
+    expect(await decodeShareHash("#fsm=!!!")).toBeNull();
+    expect(await decodeShareHash("#fsm=AAAA")).toBeNull();
   });
 });

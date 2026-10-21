@@ -148,7 +148,7 @@ export function App() {
       // address bar keeps the link until the user actually edits.
       if (loadSource(source, "")) {
         history.replaceState(null, "", hash);
-        setNotice("Loaded shared NFA.");
+        setNotice("Loaded shared FSM.");
       }
     };
     void openHash();
@@ -250,7 +250,7 @@ export function App() {
             {/* Controlled to "" so it acts as a menu: re-picking an entry still fires. */}
             <select aria-label="Open saved creation" value="" onChange={onOpen}>
               <option value="" disabled>
-                {creations.length ? "Open…" : "No saved NFAs"}
+                {creations.length ? "Open…" : "No saved FSMs"}
               </option>
               {creations.map((c) => (
                 <option key={c.name} value={c.name}>

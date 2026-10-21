@@ -1,14 +1,14 @@
 // Client-only persistence for DSL source: no backend involved.
 //
 // - Named creations live in localStorage under a single versioned key.
-// - `.nfa` files are plain UTF-8 DSL text, imported via a file picker and
+// - `.fsm` files are plain UTF-8 DSL text, imported via a file picker and
 //   exported as a download.
 // - Share links carry the source in the URL hash, deflate-compressed and
 //   base64url-encoded, so a link works without any server round-trip.
 
 const STORAGE_KEY = "automata-playground:creations:v1";
-const HASH_PREFIX = "#nfa=";
-export const FILE_EXTENSION = ".nfa";
+const HASH_PREFIX = "#fsm=";
+export const FILE_EXTENSION = ".fsm";
 
 export interface Creation {
   name: string;
@@ -84,7 +84,7 @@ export class CreationStore {
   }
 }
 
-/** A filesystem-safe `.nfa` filename for a creation name. */
+/** A filesystem-safe `.fsm` filename for a creation name. */
 export function toFileName(name: string): string {
   const base = name.trim().replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "");
   return `${base || "untitled"}${FILE_EXTENSION}`;
@@ -92,10 +92,10 @@ export function toFileName(name: string): string {
 
 /** The creation name implied by an imported file's name. */
 export function fromFileName(fileName: string): string {
-  return fileName.replace(/\.nfa$/i, "");
+  return fileName.replace(/\.fsm$/i, "");
 }
 
-/** Trigger a browser download of `source` as a `.nfa` file. */
+/** Trigger a browser download of `source` as a `.fsm` file. */
 export function downloadSource(name: string, source: string): void {
   const url = URL.createObjectURL(new Blob([source], { type: "text/plain" }));
   const a = document.createElement("a");
@@ -126,7 +126,7 @@ async function pipe(
   return new Uint8Array(await new Response(out).arrayBuffer());
 }
 
-/** Encode DSL source as a URL hash fragment (`#nfa=...`). */
+/** Encode DSL source as a URL hash fragment (`#fsm=...`). */
 export async function encodeShareHash(source: string): Promise<string> {
   const compressed = await pipe(
     new TextEncoder().encode(source),
