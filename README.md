@@ -59,6 +59,23 @@ Deploys as its **own Cloudflare Pages project** on its **own subdomain** (e.g.
   different entry adapter.
 - Local dev is unchanged: Vite (`:5173`) proxies `/api` → local Hono (`:3999`).
 
+### Pages project settings
+
+When connecting the repo in the Cloudflare dashboard (**Workers & Pages →
+Create → Pages → Connect to Git**), use:
+
+| Setting                | Value              |
+| ---------------------- | ------------------ |
+| Framework preset       | None               |
+| Build command          | `npm run build`    |
+| Build output directory | `apps/web/dist`    |
+| Root directory         | *(repo root — leave blank)* |
+
+The root directory must stay at the repo root: `npm install` there installs all
+workspaces, so `@automata/nfa-lang` resolves, and the root `build` script runs
+the `@automata/web` Vite build. The Pages build image reads [.nvmrc](.nvmrc)
+for the Node version, which `engine-strict` requires to match.
+
 ### Backend: deferred (client-only v1 recommended)
 
 `nfa-lang` runs identically in the browser, so v1 needs **no server**: parse,
