@@ -1,14 +1,14 @@
 // Client-only persistence for DSL source: no backend involved.
 //
 // - Named creations live in localStorage under a single versioned key.
-// - `.fsm` files are plain UTF-8 DSL text, imported via a file picker and
+// - `.txt` files are plain UTF-8 DSL text, imported via a file picker and
 //   exported as a download.
 // - Share links carry the source in the URL hash, deflate-compressed and
 //   base64url-encoded, so a link works without any server round-trip.
 
 const STORAGE_KEY = "automata-playground:creations:v1";
 const HASH_PREFIX = "#fsm=";
-export const FILE_EXTENSION = ".fsm";
+export const FILE_EXTENSION = ".txt";
 
 export interface Creation {
   name: string;
@@ -75,6 +75,21 @@ export class CreationStore {
     return creation;
   }
 
+  /**
+   * Save `source` without clobbering a different creation: reuses `name` when
+   * it is free or already holds this exact source, else picks `name (2)`, ...
+   */
+  saveAsNew(name: string, source: string, now = Date.now()): Creation {
+    const base = name.trim() || "untitled";
+    let candidate = base;
+    for (let n = 2; ; n++) {
+      const existing = this.get(candidate);
+      if (!existing || existing.source === source) break;
+      candidate = `${base} (${n})`;
+    }
+    return this.save(candidate, source, now);
+  }
+
   remove(name: string): void {
     this.write(this.list().filter((c) => c.name !== name));
   }
@@ -84,7 +99,7 @@ export class CreationStore {
   }
 }
 
-/** A filesystem-safe `.fsm` filename for a creation name. */
+/** A filesystem-safe `.txt` filename for a creation name. */
 export function toFileName(name: string): string {
   const base = name.trim().replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "");
   return `${base || "untitled"}${FILE_EXTENSION}`;
@@ -92,10 +107,10 @@ export function toFileName(name: string): string {
 
 /** The creation name implied by an imported file's name. */
 export function fromFileName(fileName: string): string {
-  return fileName.replace(/\.fsm$/i, "");
+  return fileName.replace(/\.txt$/i, "");
 }
 
-/** Trigger a browser download of `source` as a `.fsm` file. */
+/** Trigger a browser download of `source` as a `.txt` file. */
 export function downloadSource(name: string, source: string): void {
   const url = URL.createObjectURL(new Blob([source], { type: "text/plain" }));
   const a = document.createElement("a");

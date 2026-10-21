@@ -21,7 +21,7 @@ once and used on both sides (no client/server drift).
 Persistence is client-only (no backend), via the toolbar above the editor:
 
 - **Save / Open / Delete** — named creations stored in `localStorage`.
-- **Import / Export** — plain-text `.fsm` files containing the DSL source.
+- **Import / Export** — plain-text `.txt` files containing the DSL source.
 - **Share** — copies a link whose URL hash (`#fsm=…`) holds the source,
   deflate-compressed and base64url-encoded; opening it loads that source.
 
@@ -72,7 +72,7 @@ Deploys as its **own Cloudflare Pages project** on its **own subdomain** (e.g.
 
 `nfa-lang` runs identically in the browser, so v1 needs **no server**: parse,
 validate, expand, and render entirely client-side; persist via localStorage +
-text-file import/export (a `.fsm` file *is* the shareable creation). Add Pages
+text-file import/export (a `.txt` file *is* the shareable creation). Add Pages
 Functions (Hono) + Cloudflare KV/D1/R2 later for server-side re-validation and
 hosted saves — the shared-package design makes that a bolt-on, not a rewrite.
 Until then `apps/server` is a dev-only convenience.
@@ -94,7 +94,7 @@ for the language spec to implement.
 already call `validateProgram`, so this lights up the whole app.
 
 **Backend — promote the API to Cloudflare Pages Functions.** Deferred; add when
-client-only v1 (localStorage + `.fsm` export) outgrows its limits — i.e. you want
+client-only v1 (localStorage + `.txt` export) outgrows its limits — i.e. you want
 accounts, hosted saves, or share-by-link:
 
 - **Functions entry.** Add `functions/api/[[route]].ts` mounting the Hono app via
@@ -112,5 +112,5 @@ accounts, hosted saves, or share-by-link:
 - `apps/server` (`@hono/node-server`) stays a dev convenience; `wrangler pages
   dev` becomes the prod-truth check.
 
-**Sharing.** A `.fsm` text file *is* a portable creation (works client-only once
+**Sharing.** A `.txt` file *is* a portable creation (works client-only once
 the parser lands); upgrade to share-by-link once hosted saves exist.

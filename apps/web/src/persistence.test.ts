@@ -38,6 +38,18 @@ describe("CreationStore", () => {
     ]);
   });
 
+  it("saveAsNew picks a free name instead of overwriting", () => {
+    const store = new CreationStore(memoryStorage());
+    store.save("a", "v1", 1);
+    expect(store.saveAsNew("a", "v1", 2).name).toBe("a"); // same source: reuse
+    expect(store.saveAsNew("a", "v2", 3).name).toBe("a (2)");
+    expect(store.saveAsNew("a", "v3", 4).name).toBe("a (3)");
+    expect(store.saveAsNew("a", "v2", 5).name).toBe("a (2)");
+    expect(store.saveAsNew("  ", "x", 6).name).toBe("untitled");
+    expect(store.get("a")?.source).toBe("v1");
+    expect(store.list()).toHaveLength(4);
+  });
+
   it("removes by name", () => {
     const store = new CreationStore(memoryStorage());
     store.save("a", "x", 1);
@@ -68,17 +80,17 @@ describe("CreationStore", () => {
   });
 });
 
-describe(".fsm file names", () => {
+describe(".txt file names", () => {
   it("sanitizes creation names into file names", () => {
-    expect(toFileName("Upper Triangle")).toBe("Upper_Triangle.fsm");
-    expect(toFileName("a/b\\c")).toBe("a_b_c.fsm");
-    expect(toFileName("  ")).toBe("untitled.fsm");
+    expect(toFileName("Upper Triangle")).toBe("Upper_Triangle.txt");
+    expect(toFileName("a/b\\c")).toBe("a_b_c.txt");
+    expect(toFileName("  ")).toBe("untitled.txt");
   });
 
   it("strips the extension on import", () => {
-    expect(fromFileName("UpperTriangle.fsm")).toBe("UpperTriangle");
-    expect(fromFileName("x.FSM")).toBe("x");
-    expect(fromFileName("notes.txt")).toBe("notes.txt");
+    expect(fromFileName("UpperTriangle.txt")).toBe("UpperTriangle");
+    expect(fromFileName("x.TXT")).toBe("x");
+    expect(fromFileName("notes.md")).toBe("notes.md");
   });
 });
 

@@ -78,17 +78,31 @@ export function App() {
 
   const currentSource = () => viewRef.current?.state.doc.toString() ?? "";
 
-  /** Replace the editor contents (the update listener re-analyzes them). */
-  const loadSource = useCallback((source: string, newName: string): boolean => {
+  /** True unless the editor has unsaved edits the user declines to discard. */
+  const confirmDiscard = useCallback((): boolean => {
     const view = viewRef.current;
     if (!view) return false;
     const dirty = view.state.doc.toString() !== baselineRef.current;
-    if (dirty && !window.confirm("Discard unsaved changes?")) return false;
+    return !dirty || window.confirm("Discard unsaved changes?");
+  }, []);
+
+  /** Replace the editor contents (the update listener re-analyzes them). */
+  const replaceSource = useCallback((source: string, newName: string) => {
+    const view = viewRef.current;
+    if (!view) return;
     baselineRef.current = source;
     view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: source } });
     setName(newName);
-    return true;
   }, []);
+
+  const loadSource = useCallback(
+    (source: string, newName: string): boolean => {
+      if (!confirmDiscard()) return false;
+      replaceSource(source, newName);
+      return true;
+    },
+    [confirmDiscard, replaceSource],
+  );
 
   // Editor + diagram share one effect so the debounced update closure can drive
   // both: CodeMirror lints on its own schedule; the diagram re-renders here.
@@ -198,9 +212,19 @@ export function App() {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow importing the same file again
     if (!file) return;
-    if (loadSource(await file.text(), fromFileName(file.name))) {
-      setNotice(`Imported ${file.name}.`);
+    const source = await file.text();
+    // Confirm before saving so declining leaves storage untouched.
+    if (!confirmDiscard()) return;
+    let creation: Creation;
+    try {
+      creation = store.saveAsNew(fromFileName(file.name), source);
+    } catch (err) {
+      setNotice(`Import failed (${String(err)})`); // e.g. storage quota exceeded
+      return;
     }
+    replaceSource(creation.source, creation.name);
+    setCreations(store.list());
+    setNotice(`Imported ${file.name} as "${creation.name}".`);
   };
 
   const onShare = async () => {
