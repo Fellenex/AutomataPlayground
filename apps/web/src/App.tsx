@@ -7,15 +7,7 @@ import type { AnalysisResult } from "@automata/nfa-lang";
 import { nfaLanguage } from "./nfaLanguage";
 import { nfaLinter } from "./nfaLinter";
 import { Diagram } from "./diagram";
-import {
-  CreationStore,
-  FILE_EXTENSION,
-  browserStorage,
-  decodeShareHash,
-  downloadSource,
-  encodeShareHash,
-  fromFileName,
-} from "./persistence";
+import { CreationFile, CreationStore, ShareLink, browserStorage } from "./persistence";
 import type { Creation } from "./persistence";
 
 const store = new CreationStore(browserStorage());
@@ -153,7 +145,7 @@ export function App() {
   useEffect(() => {
     const openHash = async () => {
       const hash = window.location.hash;
-      const source = await decodeShareHash(hash);
+      const source = await ShareLink.decode(hash);
       if (source === null) {
         if (hash) setNotice("Couldn't read the shared link.");
         return;
@@ -212,12 +204,12 @@ export function App() {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow importing the same file again
     if (!file) return;
-    const source = await file.text();
+    const { name: fileName, source } = await CreationFile.read(file);
     // Confirm before saving so declining leaves storage untouched.
     if (!confirmDiscard()) return;
     let creation: Creation;
     try {
-      creation = store.saveAsNew(fromFileName(file.name), source);
+      creation = store.saveAsNew(fileName, source);
     } catch (err) {
       setNotice(`Import failed (${String(err)})`); // e.g. storage quota exceeded
       return;
@@ -229,7 +221,7 @@ export function App() {
 
   const onShare = async () => {
     const url = new URL(window.location.href);
-    url.hash = await encodeShareHash(currentSource());
+    url.hash = await ShareLink.encode(currentSource());
     try {
       await navigator.clipboard.writeText(url.toString());
       setNotice("Share link copied.");
@@ -293,11 +285,11 @@ export function App() {
             <input
               ref={fileInputRef}
               type="file"
-              accept={`${FILE_EXTENSION},text/plain`}
+              accept={CreationFile.ACCEPT}
               hidden
               onChange={onImport}
             />
-            <button onClick={() => downloadSource(name, currentSource())}>Export</button>
+            <button onClick={() => CreationFile.download(name, currentSource())}>Export</button>
             <button onClick={onShare}>Share</button>
             <span className="notice" role="status">
               {notice}
