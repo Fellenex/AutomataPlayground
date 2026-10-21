@@ -105,3 +105,7 @@ accounts, hosted saves, or share-by-link:
 
 **Sharing.** A `.nfa` text file *is* a portable creation (works client-only once
 the parser lands); upgrade to share-by-link once hosted saves exist.
+
+## License
+
+[MIT](LICENSE) © 2026 Cee Kay
