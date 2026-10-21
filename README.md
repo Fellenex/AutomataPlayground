@@ -16,6 +16,15 @@ packages/
 Both `web` and `server` import `@automata/nfa-lang`, so the grammar is written
 once and used on both sides (no client/server drift).
 
+## Saving and sharing
+
+Persistence is client-only (no backend), via the toolbar above the editor:
+
+- **Save / Open / Delete** — named creations stored in `localStorage`.
+- **Import / Export** — plain-text `.nfa` files containing the DSL source.
+- **Share** — copies a link whose URL hash (`#nfa=…`) holds the source,
+  deflate-compressed and base64url-encoded; opening it loads that source.
+
 ## Develop
 
 ```bash

@@ -68,6 +68,56 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.toolbar input,
+.toolbar select,
+.toolbar button {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+}
+
+.toolbar button:not(:disabled) {
+  cursor: pointer;
+}
+
+.toolbar button:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.toolbar button:disabled {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+.toolbar .name {
+  width: 10rem;
+}
+
+.toolbar .sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 0.25rem;
+}
+
+.toolbar .notice {
+  color: var(--muted);
+  margin-left: auto;
+}
+
 .editor {
   flex: 1;
   min-height: 0;
